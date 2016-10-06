@@ -6,6 +6,7 @@
 package obliterateeverything;
 
 //import java.util.*;
+import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -13,12 +14,18 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 
 /**
@@ -28,40 +35,68 @@ import javafx.stage.Stage;
  *      slow everything down
  *      improve layering, space - spawners - ships - lasers
  *      add menu
- *      add placement
- *      add health bars
+ *      add mouse placement
  *      add spawning progress bars
- *      add sound
+ *      add sound / in progress
  *      add AI
  *      add multiple ship types
  *      add multiple spawner types
  *      add dynamic backgrounds
+ *      add threading
  * @bugs
- *      ships moving strangely
- *      lasers not always pointing the correct direction
+ *      health bars causing screen to jerk at edges
+ *      ships movement "fixed" but still strange
+ *      lasers not always going in right direction
  *      incorrect layering, one player always renders over another
- *      ships not facing right direction, always 90 degrees off
  */
 public class ObliterateEverything extends Application {
-
+    
+    private static final boolean DEBUG = false;
+    
+    int mouseX;
+    int mouseY;
+    
     @Override
     public void start(Stage primaryStage) {
 
+        
+        Image boundingBox = new Image("boundingBox.png");
         Image space = new Image("space1024.png");
+        Image grid = new Image("grid.png");
+        //ImageView imageView = null;// = new ImageView(space); //resizable scaling image
+        //WritableImage sceneImage = null; //where snapshots go for ^
         Player p1 = new Player(0);
         Player p2 = new Player(1);
         
         primaryStage.setTitle("Obliterate Everything");
-        Group root = new Group();
+        
+        
+        Group trueRoot = new Group();
+        Group root = new Group(); //invisible unscaled image
         Scene scene = new Scene(root);
-        primaryStage.setScene(scene);
+        //trueRoot.getChildren().add(root);
+        
+        //primaryStage.setScene(scene);
         Canvas canvas = new Canvas(1024, 512);
         root.getChildren().add(canvas);
         GraphicsContext gc = canvas.getGraphicsContext2D();
+        
+        
+        //entire block for resizing
+        
+        Scene scene2 = new Scene(trueRoot);
+        primaryStage.setScene(scene2); //change to scene to view original unstretched
+        
+        WritableImage sceneImage = root.snapshot(new SnapshotParameters(), null);
+        ImageView imageView = new ImageView(sceneImage); //new ImageView(root.snapshot(new SnapshotParameters(), null));
+        trueRoot.getChildren().add(imageView); //also for resizing
+        
 
+        
+        
         ArrayList<String> input = new ArrayList<String>();
 
-        scene.setOnKeyPressed(
+        scene2.setOnKeyPressed(
                 new EventHandler<KeyEvent>() {
             public void handle(KeyEvent e) {
                 String code = e.getCode().toString();
@@ -72,8 +107,26 @@ public class ObliterateEverything extends Application {
                 }
             }
         });
+        
+        scene2.setOnMouseClicked(
+                new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                System.out.println(event.getSceneX());
+                System.out.println(event.getSceneY());
+            }
+        });
+        
+        scene2.setOnMouseMoved(
+                new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                mouseX = (int) event.getSceneX();
+                mouseY = (int) event.getSceneY();
+            }
+        });
 
-        scene.setOnKeyReleased(
+        scene2.setOnKeyReleased(
                 new EventHandler<KeyEvent>() {
             public void handle(KeyEvent e) {
                 String code = e.getCode().toString();
@@ -82,25 +135,65 @@ public class ObliterateEverything extends Application {
         });
 
         new AnimationTimer() {
+            int slow = 0;
             public void handle(long currentNanoTime) {
 
                 if(input.contains("A")) {
                     //pause everything
                 }
-                else
+                else if(input.contains("S"))
+                {
+                    if(slow == 0)
+                    {
+                        slow = 10;
+                        
+                        gc.drawImage(space, 0, 0);
+                        
+                        if (DEBUG) {
+                            gc.drawImage(grid, 0, 0);
+                            gc.drawImage(boundingBox, (mouseX / 8) * 8, (mouseY / 8) * 8);
+                        }
+
+                        p1.update(p2, root);
+                        p2.update(p1, root);
+                        p1.render(gc, root);
+                        p2.render(gc, root);
+                        imageView.setFitWidth(scene2.getWidth()); //for resizing
+                        imageView.setFitHeight(scene2.getHeight()); //for resizing
+                        root.snapshot(new SnapshotParameters(), sceneImage);
+                    }
+                    else
+                    {
+                        slow--;
+                    }
+                }
+                else //normal main game loop
                 {
                     gc.drawImage(space, 0, 0);
+                    
+                    if (DEBUG)
+                    {
+                        gc.drawImage(grid, 0, 0);
+                        gc.drawImage(boundingBox, (mouseX/8)*8, (mouseY/8)*8);
+                    }
+                    
                     //change so that this works with variable players
                     //updates
-                    p1.update(p2);
-                    p2.update(p1);
+                    p1.update(p2, root);
+                    p2.update(p1, root);
                     //renders
-                    p1.render(gc);
-                    p2.render(gc);
+                    p1.render(gc, root);
+                    p2.render(gc, root);
+                    
+                    imageView.setFitWidth(scene2.getWidth()); //for resizing
+                    imageView.setFitHeight(scene2.getHeight()); //for resizing
+                    
+                    root.snapshot(new SnapshotParameters(), sceneImage);
                 }
             }
         }.start();
 
+        
         primaryStage.show();
     }
 
