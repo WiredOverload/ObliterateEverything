@@ -5,7 +5,11 @@
  */
 package obliterateeverything;
 
+import java.io.File;
 import java.util.ArrayList;
+import javafx.scene.media.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 
 /**
  *
@@ -13,30 +17,44 @@ import java.util.ArrayList;
  */
 public class Ship {
 
+    private static final boolean DEBUG = false;
+    
     private int x;
     private int y;
     private int xVelocity;
     private int yVelocity;
     private int acceleration;
     private int maxSpeed;
+    private int size;
     private int targetX;
     private int targetY;
     private int targetDistance;
     private int angle;
     private int cooldown;
     private short type;
+    private Line gHealth = new Line();//green portion of health bar
+    private Line rHealth = new Line();//red portion of health bar
+    private Line line = new Line(); //for debug only
     /*
         1 = standard
         2 = glass cannon
         3 = shield
         go through all attributes and change based on type
+    
+        270
+     180 + 0
+        90
      */
     private int health;
+    private int maxHealth;
     private int damage;
     private int hitX;
     private int hitY;
     private int hitTime;
     private ArrayList<Laser> lasers;
+    //Media music = new Media(new File("slink.mp3").toURI().toString()); //move this
+    //MediaPlayer mediaPlayer = new MediaPlayer(music);//                  and this
+    AudioClip plonkSound = new AudioClip(new File("slink2.mp3").toURI().toString());
 
     public Ship() {
         this.x = 0;
@@ -44,17 +62,21 @@ public class Ship {
         this.xVelocity = 0;
         this.yVelocity = 0;
         this.angle = 0;
+        this.size = 16;
         this.type = 1;
         this.health = 100;
+        this.maxHealth = 100;
         this.damage = 20;
         this.acceleration = 5;
         this.maxSpeed = 10;
-        this.cooldown = 0;
+        this.cooldown = -2;
         this.lasers = new ArrayList<Laser>();
         this.targetDistance = 5000;
         this.hitX = -1;
         this.hitY = -1;
         this.hitTime = 0;
+        gHealth.setStroke(Color.LAWNGREEN);
+        rHealth.setStroke(Color.RED);
     }
 
     public Ship(short type, int x, int y) {
@@ -66,23 +88,33 @@ public class Ship {
         this.angle = 0;
         this.acceleration = 5;
         this.maxSpeed = 10;
-        this.cooldown = 0;
+        this.cooldown = -2; //-2 for debug target line
         this.lasers = new ArrayList<Laser>();
         this.targetDistance = 5000;
         this.hitX = -1;
         this.hitY = -1;
         this.hitTime = 0;
+        gHealth.setStroke(Color.LAWNGREEN);
+        rHealth.setStroke(Color.RED);
 
         if (type == 1) {
             this.health = 100;
+            this.maxHealth = 100;
             this.damage = 20;
+            this.size = 16;
         } else if (this.type == 2) {
             this.health = 50;
+            this.maxHealth = 50;
             this.damage = 40;
+            this.size = 16;
         } else if (this.type == 3) {
             this.health = 200;
+            this.maxHealth = 200;
             this.damage = 10;
+            this.size = 16;
         }
+        
+        
 
     }
 
@@ -154,7 +186,33 @@ public class Ship {
     public int getHitTime() {
         return hitTime;
     }
+    
+    public Line getLine() {
+        return line;
+    }
 
+    public int getMaxSpeed() {
+        return maxSpeed;
+    }
+
+    public Line getgHealth() {
+        return gHealth;
+    }
+
+    public Line getrHealth() {
+        return rHealth;
+    }
+
+    public int getMaxHealth() {
+        return maxHealth;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    
+    
     //setters
     public void setxVelocity(int xVelocity) {
         this.xVelocity = xVelocity;
@@ -228,6 +286,29 @@ public class Ship {
         this.hitTime = hitTime;
     }
 
+    public void setMaxSpeed(int maxSpeed) {
+        this.maxSpeed = maxSpeed;
+    }
+
+    public void setgHealth(Line gHealth) {
+        this.gHealth = gHealth;
+    }
+
+    public void setrHealth(Line rHealth) {
+        this.rHealth = rHealth;
+    }
+
+    public void setMaxHealth(int maxHealth) {
+        this.maxHealth = maxHealth;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    
+    
+    
     //methods
     public void update(Player enemy) {
         //looks through all enemy ships and spawners for the closest, then sets it as target
@@ -253,12 +334,43 @@ public class Ship {
 
         if (this.targetX - this.x == 0) {
             if (this.targetY - this.y < 0) {
-                this.angle = -90;
+                this.angle = 270;
             } else {
                 this.angle = 90;
             }
-        } else {
+        }
+        else if (this.targetY - this.y == 0) {
+            if (this.targetX - this.x < 0) {
+                this.angle = 180;
+            } else {
+                this.angle = 0;
+            }
+        }
+        else {
             this.angle = (int) Math.toDegrees(Math.atan(((double) this.targetY - (double) this.y) / ((double) this.targetX - (double) this.x)));
+            
+            if(this.targetY - this.y > 0)
+            {
+                if(this.targetX - this.x > 0)
+                {
+                    //do nothing
+                }
+                else
+                {
+                    this.angle += 180;
+                }
+            }
+            else
+            {
+                if(this.targetX - this.x > 0)
+                {
+                    this.angle += 360;
+                }
+                else
+                {
+                    this.angle += 180;
+                }
+            }
         }
 
         this.xVelocity += Math.cos(angle) * this.acceleration;
@@ -305,9 +417,9 @@ public class Ship {
                 for (int k = 0; k < enemy.getSpawners().get(j).getShips().size(); k++) {
                     //remove constants for other ship types
                     if (this.lasers.get(i).getX() >= enemy.getSpawners().get(j).getShips().get(k).getX() - 1
-                            && this.lasers.get(i).getX() <= enemy.getSpawners().get(j).getShips().get(k).getX() + 15
+                            && this.lasers.get(i).getX() <= enemy.getSpawners().get(j).getShips().get(k).getX() + (enemy.getSpawners().get(j).getShips().get(k).getSize() - 1)
                             && this.lasers.get(i).getY() >= enemy.getSpawners().get(j).getShips().get(k).getY() - 7
-                            && this.lasers.get(i).getY() <= enemy.getSpawners().get(j).getShips().get(k).getY() + 15) {
+                            && this.lasers.get(i).getY() <= enemy.getSpawners().get(j).getShips().get(k).getY() + (enemy.getSpawners().get(j).getShips().get(k).getSize() - 1)) {
                         enemy.getSpawners().get(j).getShips().get(k).setHealth(
                                 enemy.getSpawners().get(j).getShips().get(k).getHealth() - this.damage);
                         this.hitX = this.lasers.get(i).getX();
@@ -319,9 +431,9 @@ public class Ship {
                 }
                 //remove constants for other spawner types
                 if (this.lasers.get(i).getX() >= enemy.getSpawners().get(j).getX() - 1
-                        && this.lasers.get(i).getX() <= enemy.getSpawners().get(j).getX() + 31
+                        && this.lasers.get(i).getX() <= enemy.getSpawners().get(j).getX() + (enemy.getSpawners().get(j).getSize() - 1)
                         && this.lasers.get(i).getY() >= enemy.getSpawners().get(j).getY() - 7
-                        && this.lasers.get(i).getY() <= enemy.getSpawners().get(j).getY() + 31) {
+                        && this.lasers.get(i).getY() <= enemy.getSpawners().get(j).getY() + (enemy.getSpawners().get(j).getSize() - 1)) {
                     enemy.getSpawners().get(j).setHealth(
                             enemy.getSpawners().get(j).getHealth() - this.damage);
                     this.hitX = this.lasers.get(i).getX();
@@ -348,9 +460,43 @@ public class Ship {
             this.yVelocity = 10;
         }
         this.y += this.yVelocity;
+        
+        //crazy cooldowns for efficient(?) debug target line and health bar
+        if (this.cooldown == -3) {
+            this.cooldown += 2;
+        } else if (this.cooldown == -2) {
+            this.cooldown = 0;
+        }
+        
+        gHealth.setStartX(this.x);
+        gHealth.setStartY(this.y + size);
+        gHealth.setEndX(this.x + (((double) health / (double) maxHealth) * (double) size));
+        gHealth.setEndY(this.y + size);
+
+        rHealth.setStartX(this.x + size);
+        rHealth.setStartY(this.y + size);
+        rHealth.setEndX(this.x + (((double) health / (double) maxHealth) * (double) size));
+        rHealth.setEndY(this.y + size);
+        
+        if(DEBUG)
+        {
+            line.setStartX(this.x);
+            line.setStartY(this.y);
+            line.setEndX(this.targetX);
+            line.setEndY(this.targetY);
+
+            //debug position and angle
+            System.out.print(x);
+            System.out.print(", ");
+            System.out.print(y);
+            System.out.print(": ");
+            System.out.println(angle);
+        }
+        
     }
 
     public void fire() {
         lasers.add(new Laser(this.x, this.y, this.angle));
+        plonkSound.play();
     }
 }
