@@ -35,6 +35,7 @@ import javafx.stage.Stage;
  *      slow everything down
  *      improve layering, space - spawners - ships - lasers
  *      add menu
+ *      add toggling to keys
  *      add mouse placement
  *      add spawning progress bars
  *      add sound / in progress
@@ -61,12 +62,16 @@ public class ObliterateEverything extends Application {
 
         
         Image boundingBox = new Image("boundingBox.png");
-        Image space = new Image("space1024.png");
+        Image space = new Image("space1024.png"); //old static image
+        Image stars = new Image("stars.png");
+        Image clouds = new Image("clouds.png");
+        Image buttons = new Image("buttons.png");
         Image grid = new Image("grid.png");
         //ImageView imageView = null;// = new ImageView(space); //resizable scaling image
         //WritableImage sceneImage = null; //where snapshots go for ^
         Player p1 = new Player(0);
         Player p2 = new Player(1);
+        Buttons b1 = new Buttons(100, 100, 100);
         
         primaryStage.setTitle("Obliterate Everything");
         
@@ -82,14 +87,15 @@ public class ObliterateEverything extends Application {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         
         
-        //entire block for resizing
         
+        //entire block for resizing
         Scene scene2 = new Scene(trueRoot);
         primaryStage.setScene(scene2); //change to scene to view original unstretched
         
         WritableImage sceneImage = root.snapshot(new SnapshotParameters(), null);
         ImageView imageView = new ImageView(sceneImage); //new ImageView(root.snapshot(new SnapshotParameters(), null));
         trueRoot.getChildren().add(imageView); //also for resizing
+        
         
 
         
@@ -112,8 +118,9 @@ public class ObliterateEverything extends Application {
                 new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                System.out.println(event.getSceneX());
-                System.out.println(event.getSceneY());
+                System.out.println(event.getX());
+                System.out.println(event.getY());
+                
             }
         });
         
@@ -136,6 +143,7 @@ public class ObliterateEverything extends Application {
 
         new AnimationTimer() {
             int slow = 0;
+            int cloudTimer = 0;
             public void handle(long currentNanoTime) {
 
                 if(input.contains("A")) {
@@ -169,7 +177,17 @@ public class ObliterateEverything extends Application {
                 }
                 else //normal main game loop
                 {
-                    gc.drawImage(space, 0, 0);
+                    //gc.drawImage(space, 0, 0); //old static image
+                    
+                    //simple animated background
+                    if (cloudTimer == 2048)
+                        cloudTimer = 0;
+                    else
+                        cloudTimer++;
+                    gc.drawImage(stars, 0, 0);
+                    gc.drawImage(clouds, cloudTimer, 0);
+                    gc.drawImage(clouds, cloudTimer - 2048, 0);
+                    //gc.drawImage(buttons, 0, 0); //for menu
                     
                     if (DEBUG)
                     {
