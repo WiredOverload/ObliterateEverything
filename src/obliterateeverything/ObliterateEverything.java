@@ -64,8 +64,8 @@ public class ObliterateEverything extends Application {
         Image boundingBox = new Image("boundingBox.png");
         Image space = new Image("space1024.png"); //old static image
         Image stars = new Image("stars.png");
-        Image clouds = new Image("clouds.png");
-        Image buttons = new Image("buttons.png");
+        Image clouds1 = new Image("clouds2.png");
+        Image clouds2 = new Image("clouds3.png");
         Image grid = new Image("grid.png");
         //ImageView imageView = null;// = new ImageView(space); //resizable scaling image
         //WritableImage sceneImage = null; //where snapshots go for ^
@@ -180,13 +180,15 @@ public class ObliterateEverything extends Application {
                     //gc.drawImage(space, 0, 0); //old static image
                     
                     //simple animated background
-                    if (cloudTimer == 2048)
+                    if (cloudTimer == 4096)
                         cloudTimer = 0;
                     else
                         cloudTimer++;
                     gc.drawImage(stars, 0, 0);
-                    gc.drawImage(clouds, cloudTimer, 0);
-                    gc.drawImage(clouds, cloudTimer - 2048, 0);
+                    gc.drawImage(clouds1, cloudTimer % 2048, 0);
+                    gc.drawImage(clouds1, (cloudTimer % 2048) - 2048, 0);
+                    gc.drawImage(clouds2, cloudTimer / 2, 0);
+                    gc.drawImage(clouds2, (cloudTimer / 2) - 2048, 0);
                     //gc.drawImage(buttons, 0, 0); //for menu
                     
                     if (DEBUG)
