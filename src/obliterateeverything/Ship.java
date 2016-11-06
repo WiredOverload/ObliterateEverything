@@ -21,9 +21,9 @@ public class Ship {
     
     private int x;
     private int y;
-    private int xVelocity;
-    private int yVelocity;
-    private int acceleration;
+    private double xVelocity;
+    private double yVelocity;
+    private double acceleration;
     private int maxSpeed;
     private int size;
     private int targetX;
@@ -67,7 +67,7 @@ public class Ship {
         this.health = 100;
         this.maxHealth = 100;
         this.damage = 20;
-        this.acceleration = 5;
+        this.acceleration = .1;
         this.maxSpeed = 10;
         this.cooldown = -2;
         this.lasers = new ArrayList<Laser>();
@@ -86,7 +86,7 @@ public class Ship {
         this.yVelocity = 0;
         this.type = type;
         this.angle = 0;
-        this.acceleration = 5;
+        this.acceleration = 3; //I have no idea what the acceleration should be
         this.maxSpeed = 10;
         this.cooldown = -2; //-2 for debug target line
         this.lasers = new ArrayList<Laser>();
@@ -143,15 +143,15 @@ public class Ship {
         return damage;
     }
 
-    public int getxVelocity() {
+    public double getxVelocity() {
         return xVelocity;
     }
 
-    public int getyVelocity() {
+    public double getyVelocity() {
         return yVelocity;
     }
 
-    public int getAcceleration() {
+    public double getAcceleration() {
         return acceleration;
     }
 
@@ -214,11 +214,11 @@ public class Ship {
     
     
     //setters
-    public void setxVelocity(int xVelocity) {
+    public void setxVelocity(double xVelocity) {
         this.xVelocity = xVelocity;
     }
 
-    public void setyVelocity(int yVelocity) {
+    public void setyVelocity(double yVelocity) {
         this.yVelocity = yVelocity;
     }
 
@@ -246,7 +246,7 @@ public class Ship {
         this.damage = damage;
     }
 
-    public void setAcceleration(int acceleration) {
+    public void setAcceleration(double acceleration) {
         this.acceleration = acceleration;
     }
 
@@ -447,16 +447,16 @@ public class Ship {
 
         //error check for sides of window
         //change for scalable windows
-        if (this.x > 1022) {
+        if (this.x > 1024 - maxSpeed) {
             this.xVelocity = -10;
-        } else if (this.x < 2) {
+        } else if (this.x < maxSpeed) {
             this.xVelocity = 10;
         }
         this.x += this.xVelocity;
 
-        if (this.y > 510) {
+        if (this.y > 512 - maxSpeed) {
             this.yVelocity = -10;
-        } else if (this.y < 2) {
+        } else if (this.y < maxSpeed) {
             this.yVelocity = 10;
         }
         this.y += this.yVelocity;
