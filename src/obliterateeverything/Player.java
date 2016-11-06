@@ -27,9 +27,12 @@ public class Player {
     private int energy; //currency
     private int team;
     private ArrayList<Spawner> spawners;
-    private Image ship;// = new Image("small4.png");
-    private Image spawner;// = new Image("port2.png");
-    private Image laser;// = new Image("laserBasic.png");
+    private ArrayList<Turret> turrets;
+    private Image ship; //change to structures holding their own images
+    private Image spawner;
+    private Image laser;
+    private Image turretBase; 
+    private Image turretGun;
     private Image hit = new Image("smallHit.png");
     private Image target = new Image("target.png"); //debug only
     private Image boundingBox = new Image("boundingBox.png"); //debug only
@@ -47,17 +50,23 @@ public class Player {
         this.team = team;
         this.energy = 500;
         this.spawners = new ArrayList<Spawner>();
+        this.turrets = new ArrayList<Turret>();
         //test spawners, remove with user input
         if (this.team == 0) {
             this.spawners.add(new Spawner((short) 1, 768, 300));
             this.ship = new Image("small4_1.png");
             this.spawner = new Image("port2_1.png");
             this.laser = new Image("laserBasic_1.png");
+            this.turretBase = new Image("turretBase3.png");
+            this.turretGun = new Image("turretGun1.png");
         } else if (this.team == 1) {
             this.spawners.add(new Spawner((short) 1, 256, 256));
+            this.turrets.add(new Turret(64,64,0));
             this.ship = new Image("small4_2.png");
             this.spawner = new Image("port2_2.png");
             this.laser = new Image("laserBasic_2.png");
+            this.turretBase = new Image("turretBase3.png");
+            this.turretGun = new Image("turretGun1.png");
         }
     }
 
@@ -113,15 +122,29 @@ public class Player {
                 spawners.remove(i);
             }
         }
+        for(int i = 0; i < turrets.size(); i++)
+        {
+            if(turrets.get(i).getHealth() < 0)
+            {
+                root.getChildren().remove(turrets.get(i).getgHealth());
+                root.getChildren().remove(turrets.get(i).getrHealth());
+            }
+            turrets.get(i).update(enemy);
+            if (turrets.get(i).getHealth() <= 0) {
+                turrets.remove(i);
+            }
+        }
     }
 
     void render(GraphicsContext gc, Group root) {
+        //spawners + ships
         for (int i = 0; i < spawners.size(); i++) {
             gc.drawImage(spawner, spawners.get(i).getX(), spawners.get(i).getY());
             if (spawners.get(i).getCooldown() < 0) {
                 root.getChildren().add(spawners.get(i).getgHealth());
                 root.getChildren().add(spawners.get(i).getrHealth());
             }
+            
             for (int j = 0; j < spawners.get(i).getShips().size(); j++) {
                 gc.save();
                 r = new Rotate((spawners.get(i).getShips().get(j).getAngle() + 90) % 360, spawners.get(i).getShips().get(j).getX() + 8, spawners.get(i).getShips().get(j).getY() + 8);
@@ -133,7 +156,7 @@ public class Player {
                     gc.drawImage(hit, spawners.get(i).getShips().get(j).getHitX(), spawners.get(i).getShips().get(j).getHitY());
                 }
                 
-                //health bars
+                //ship health bars
                 if (spawners.get(i).getShips().get(j).getCooldown() < 0) {
                     root.getChildren().add(spawners.get(i).getShips().get(j).getgHealth());
                     root.getChildren().add(spawners.get(i).getShips().get(j).getrHealth());
@@ -173,6 +196,14 @@ public class Player {
                 }
             }
         }
-        //gc.drawImage(target,,); //mouse event testing
+        //turrets
+        for (int i = 0; i < turrets.size(); i++) {
+            gc.drawImage(turretBase, turrets.get(i).getX(), turrets.get(i).getY());
+            gc.save();
+            r = new Rotate((turrets.get(i).getAngle() + 90) % 360, turrets.get(i).getX() + 8, turrets.get(i).getY() + 8);
+            gc.setTransform(r.getMxx(), r.getMyx(), r.getMxy(), r.getMyy(), r.getTx(), r.getTy());
+            gc.drawImage(turretGun, turrets.get(i).getX(), turrets.get(i).getY());
+            gc.restore();
+        }
     }
 }
