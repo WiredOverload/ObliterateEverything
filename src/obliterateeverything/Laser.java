@@ -67,9 +67,9 @@ public class Laser {
     //methods
     public void update() {
         //collison has to be with the ship object
-
-        this.x += Math.cos(angle) * velocity;
-        this.y += Math.sin(angle) * velocity;
+        //something is wrong here
+        this.x += Math.cos(Math.toRadians(angle)) * velocity;
+        this.y += Math.sin(Math.toRadians(angle)) * velocity;
 
     }
 }
