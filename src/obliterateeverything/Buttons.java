@@ -5,6 +5,7 @@
  */
 package obliterateeverything;
 
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
@@ -20,6 +21,8 @@ public class Buttons {
     private int height;
     private Rectangle r;
     private boolean added = false;
+    private String message;
+    private Image icon;
     
     public Buttons(int x, int y, int width, int height) {
         this.x = x;
@@ -30,11 +33,22 @@ public class Buttons {
         r.setFill(Color.web("FF0000", 0.5));
     }
     
-    public Buttons(int x, int y, int size) {
+    public Buttons(int x, int y, int width, int height, String message) {
         this.x = x;
         this.y = y;
-        this.width = size;
-        this.height = size;
+        this.width = width;
+        this.height = height;
+        this.message = message;
+        this.r = new Rectangle(x, y, width, height);
+        r.setFill(Color.web("FF0000", 0.5));
+    }
+    
+    public Buttons(int x, int y, int width, int height, Image icon) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.icon = icon;
         this.r = new Rectangle(x, y, width, height);
         r.setFill(Color.web("FF0000", 0.5));
     }
@@ -63,6 +77,14 @@ public class Buttons {
         return added;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
+    public Image getIcon() {
+        return icon;
+    }
+
     
     
     public void setX(int x) {
@@ -88,9 +110,18 @@ public class Buttons {
     public void setAdded(boolean added) {
         this.added = added;
     }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setIcon(Image icon) {
+        this.icon = icon;
+    }
     
     
-    public boolean collision(int x, int y)
+    
+    public boolean isClicked(int x, int y)
     {
         if(x >= this.x && y > this.y && x < this.x + this.width && y < this.y + this.height)
             return true;
